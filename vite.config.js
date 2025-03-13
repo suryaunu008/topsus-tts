@@ -2,6 +2,8 @@ import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
 import vue from '@vitejs/plugin-vue';
 
+const host = process.env.APP_DEV === 'deo' ? 'topsus.kuliah.local' : 'localhost';
+
 export default defineConfig({
     plugins: [
         laravel({
@@ -18,6 +20,6 @@ export default defineConfig({
         }),
     ],
     server: {
-        host: 'topsus.kuliah.local'
+        host: host
     },
 });
