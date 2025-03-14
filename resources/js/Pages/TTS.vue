@@ -7,9 +7,6 @@ import { onMounted, ref } from "vue";
 
 const artyom = new Artyom();
 const text = ref("");
-let audioContext,
-    mediaRecorder,
-    audioChunks = [];
 
 onMounted(() => {
     artyom.initialize({
@@ -18,62 +15,17 @@ onMounted(() => {
         soundex: true,
         debug: true,
     });
-
-    audioContext = new (window.AudioContext || window.webkitAudioContext)();
 });
 
-const startRecording = () => {
-    const destination = audioContext.createMediaStreamDestination();
-    mediaRecorder = new MediaRecorder(destination.stream);
-    audioChunks = [];
-
-    mediaRecorder.ondataavailable = (event) => {
-        audioChunks.push(event.data);
-    };
-
-    mediaRecorder.onstop = () => {
-        const audioBlob = new Blob(audioChunks, { type: "audio/wav" });
-        const audioUrl = URL.createObjectURL(audioBlob);
-
-        const downloadLink = document.createElement("a");
-        downloadLink.href = audioUrl;
-        downloadLink.download = "artyom-voice.wav";
-        document.body.appendChild(downloadLink);
-        downloadLink.click();
-        document.body.removeChild(downloadLink);
-    };
-
-    mediaRecorder.start();
-
-    return destination;
-};
-
 const sayHello = () => {
-    if (!text.value) return;
-
-    const destination = startRecording();
-    const utterance = new SpeechSynthesisUtterance(text.value);
-
-    utterance.onstart = () => {
-        console.log("Rekaman dimulai...");
-    };
-
-    utterance.onend = () => {
-        console.log("Rekaman selesai, menyiapkan unduhan...");
-        mediaRecorder.stop();
-    };
-
-    // Menghubungkan sumber audio ke audio context
-    const source = audioContext.createMediaStreamSource(destination.stream);
-    source.connect(audioContext.destination);
-
-    // Menghubungkan utterance ke audio context
-    const utteranceSource = audioContext.createMediaStreamSource(
-        destination.stream
-    );
-    utteranceSource.connect(audioContext.destination);
-
-    window.speechSynthesis.speak(utterance);
+    if (text.value.trim() === "") {
+        console.warn("Masukkan teks sebelum diucapkan!");
+        return;
+    }
+    artyom.say(text.value, {
+        onStart: () => console.log("Speaking..."),
+        onEnd: () => console.log("Done speaking."),
+    });
 };
 </script>
 
